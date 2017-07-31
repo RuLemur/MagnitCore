@@ -10,6 +10,7 @@ public class DBBean {
     private String user;
     private String password;
     private int entryCount;
+    private int limit;
 
     public String getUrl() {
         return url;
@@ -41,5 +42,13 @@ public class DBBean {
 
     public void setEntryCount(int entryCount) {
         this.entryCount = entryCount;
+    }
+
+    public int getLimit() {
+        return limit;
+    }
+
+    public void setLimit(int limit) {
+        this.limit = limit;
     }
 }

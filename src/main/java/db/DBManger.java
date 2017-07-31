@@ -35,12 +35,22 @@ public class DBManger {
     }
 
     public void fillTable() {
+        clearTable();
         try (Connection connection = DriverManager.getConnection(dbBean.getUrl(), dbBean.getUser(), dbBean.getPassword());
              Statement statement = connection.createStatement()) {
             statement.execute(SqlQueryTemplate.getCreateTableQuery());
-            for (int i = 0; i <= dbBean.getEntryCount() % 50000; i++) {
-                statement.executeUpdate(SqlQueryTemplate.getAddManyEntryQuery(i+1, dbBean.getEntryCount()));
-            }
+//            for (int i = 0; i <= dbBean.getEntryCount() % 50000; i++) {
+            statement.executeUpdate(SqlQueryTemplate.getAddManyEntryQuery(1, dbBean.getEntryCount()));
+//            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void clearTable() {
+        try (Connection connection = DriverManager.getConnection(dbBean.getUrl(), dbBean.getUser(), dbBean.getPassword());
+             Statement statement = connection.createStatement()) {
+            statement.execute(SqlQueryTemplate.getClearTableQuery());
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -57,6 +67,7 @@ public class DBManger {
             dbBean.setPassword(properties.getProperty("password"));
             dbBean.setUser(properties.getProperty("user"));
             dbBean.setEntryCount(Integer.valueOf(properties.getProperty("entryCount")));
+            dbBean.setLimit(Integer.valueOf(properties.getProperty("limit")));
 
         } catch (IOException e) {
             e.printStackTrace();
