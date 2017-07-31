@@ -1,9 +1,10 @@
 package db;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.*;
-import java.time.LocalTime;
-import java.time.temporal.ChronoUnit;
-import java.util.concurrent.TimeUnit;
+import java.util.Properties;
 
 /**
  * Created by RuLemur on 24.07.2017.
@@ -12,6 +13,10 @@ import java.util.concurrent.TimeUnit;
 public class DBManger {
     private DBBean dbBean;
 
+    public DBManger() {
+        this.dbBean = createDBean();
+    }
+
     public DBManger(DBBean dbBean) {
         this.dbBean = dbBean;
     }
@@ -19,11 +24,6 @@ public class DBManger {
     public DBBean getDbBean() {
         return dbBean;
     }
-
-    public void setDbBean(DBBean dbBean) {
-        this.dbBean = dbBean;
-    }
-
 
     public void connectToDB() {
         try {
@@ -34,20 +34,33 @@ public class DBManger {
         }
     }
 
-    public void addEntries() {
-        LocalTime startTime = LocalTime.now();
+    public void fillTable() {
         try (Connection connection = DriverManager.getConnection(dbBean.getUrl(), dbBean.getUser(), dbBean.getPassword());
              Statement statement = connection.createStatement()) {
-
             statement.execute(SqlQueryTemplate.getCreateTableQuery());
-//            for (int i = 1; i <= dbBean.getEntryCount(); i++) {
-            statement.executeUpdate(SqlQueryTemplate.getAddManyEntryQuery(1, dbBean.getEntryCount()));
-//            }
-            System.out.println("end: " + startTime.until(LocalTime.now(), ChronoUnit.SECONDS));
+            for (int i = 0; i <= dbBean.getEntryCount() % 50000; i++) {
+                statement.executeUpdate(SqlQueryTemplate.getAddManyEntryQuery(i+1, dbBean.getEntryCount()));
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
 
+    private DBBean createDBean() {
+        Properties properties = new Properties();
+        DBBean dbBean = new DBBean();
 
+        try (InputStream input = new FileInputStream("src/main/resources/db.properties")) {
+            properties.load(input);
+
+            dbBean.setUrl(properties.getProperty("url"));
+            dbBean.setPassword(properties.getProperty("password"));
+            dbBean.setUser(properties.getProperty("user"));
+            dbBean.setEntryCount(Integer.valueOf(properties.getProperty("entryCount")));
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return dbBean;
     }
 }
