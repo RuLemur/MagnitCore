@@ -22,7 +22,7 @@ public class SqlQueryTemplate {
     }
 
     public static String getSelectAll() {
-        return "SELECT * FROM test";
+        return "SELECT num FROM test";
     }
 
     public static String getAddManyEntryQuery(int from, int to) {

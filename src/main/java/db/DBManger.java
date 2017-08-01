@@ -36,15 +36,34 @@ public class DBManger {
 
     public void fillTable() {
         clearTable();
+        long startTime = System.currentTimeMillis();
         try (Connection connection = DriverManager.getConnection(dbBean.getUrl(), dbBean.getUser(), dbBean.getPassword());
              Statement statement = connection.createStatement()) {
             statement.execute(SqlQueryTemplate.getCreateTableQuery());
-//            for (int i = 0; i <= dbBean.getEntryCount() % 50000; i++) {
-            statement.executeUpdate(SqlQueryTemplate.getAddManyEntryQuery(1, dbBean.getEntryCount()));
-//            }
+            int startNum = 1;
+            int endNum = dbBean.getLimit();
+            for (int i = 0; i <= dbBean.getEntryCount() / dbBean.getLimit(); i++) {
+                if (dbBean.getEntryCount() > endNum) {
+                    statement.executeUpdate(SqlQueryTemplate.getAddManyEntryQuery(startNum, endNum));
+                    startNum = endNum + 1;
+                    endNum = endNum + dbBean.getLimit();
+                    continue;
+                }
+                if (dbBean.getEntryCount() < endNum) {
+                    statement.execute(SqlQueryTemplate.getAddManyEntryQuery(startNum, dbBean.getEntryCount()));
+                    break;
+                }
+                if (dbBean.getEntryCount() == endNum) {
+                    statement.executeUpdate(SqlQueryTemplate.getAddManyEntryQuery(startNum, endNum));
+                    break;
+                }
+
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        System.out.println((System.currentTimeMillis() - startTime) / 1000);
+
     }
 
     public void clearTable() {
@@ -73,5 +92,19 @@ public class DBManger {
             e.printStackTrace();
         }
         return dbBean;
+    }
+
+    public void selectFromDb() {
+        try (Connection connection = DriverManager.getConnection(dbBean.getUrl(), dbBean.getUser(), dbBean.getPassword());
+             Statement statement = connection.createStatement()) {
+            long startTime = System.currentTimeMillis();
+            ResultSet resultSet = statement.executeQuery(SqlQueryTemplate.getSelectAll());
+            while (resultSet.next()){
+                System.out.println(resultSet.getInt(1));
+            }
+            System.out.println((System.currentTimeMillis() - startTime) / 1000);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

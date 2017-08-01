@@ -11,6 +11,7 @@ public class Main {
         DBManger manger = new DBManger();
         manger.connectToDB();
         manger.fillTable();
+        manger.selectFromDb();
 
     }
 
